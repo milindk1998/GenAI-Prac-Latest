@@ -31,21 +31,42 @@ class GroqJudge(DeepEvalBaseLLM):
 
 
 def test_evaluate_rag():
+
     answer, question, context = from_rag("What is the FEATURES OF CORPORATE POLICY")
 
     test_case = LLMTestCase(input=question, actual_output=answer.content, retrieval_context=context)
-    metrics = [AnswerRelevancyMetric(model=GroqJudge(), threshold=0.8),
-               ContextualRelevancyMetric(model=GroqJudge(), threshold=0.8)]
 
-    evaluate(test_cases=[test_case], metrics=metrics)
+    metrics = [AnswerRelevancyMetric(model=GroqJudge(), threshold=0.8, async_mode=False),
+               ContextualRelevancyMetric(model=GroqJudge(), threshold=0.7, async_mode=False)]
 
-    # Quality gate
-    # for metric in metrics:
-    #     if metric.score is None:
-    #         raise SystemExit(f"Evaluation ERRORED — {metric.__class__.__name__}: {metric.error}")
-    #     if metric.score < metric.threshold:
-    #         raise SystemExit(f"Quality gate FAILED — {metric.__class__.__name__}: {metric.score:.2f} < {metric.threshold}")
-    #     print(f"Quality gate PASSED — {metric.__class__.__name__}: {metric.score:.2f}")
+    #  Deepeval registration is not used because test_eval.py:41 is commented 
+    #  and you only do manual metric.measure loops.
+    #  So Deepeval reports: No test cases found, please try again.
+
+    # results = evaluate(test_cases=[test_case], metrics=metrics)
+
+    # Quality gate evaluation
+    failed = False
+
+    for metric in metrics:
+        metric.measure(test_case)
+
+        if metric.error:
+            print(f"Error: {metric.error}")
+            failed = True
+
+        elif metric.score is None:
+            print("Error: Score is None")
+            failed = True
+
+        elif metric.score < metric.threshold:
+            print(f"Quality gate FAILED — {metric.__class__.__name__}: {metric.score}")
+            failed = True
+        else:
+            print(f"Quality gate PASSED — {metric.__class__.__name__}: {metric.score}")
+
+        if failed:
+            raise SystemExit("Evaluation ERRORED — Check the logs for details.")
 
 
 if __name__ == "__main__":

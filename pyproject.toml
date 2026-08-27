@@ -17,8 +17,10 @@ dependencies = [
     "langchain-huggingface>=1.2.2",
     "langchain-text-splitters>=1.1.2",
     "langgraph>=1.2.11",
+    "litellm>=1.98.0",
     "mcp>=2.1.1",
     "pypdf>=6.16.2",
+    "pytest>=9.1.1",
     "python-dotenv>=1.2.3",
     "sentence-transformers>=6.0.0",
 ]
